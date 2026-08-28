@@ -1,0 +1,2963 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Chaos Race 3D - Version 2</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-touch-callout:none;
+}
+
+html,body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#10131d;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+canvas{
+    display:block;
+}
+
+#game{
+    position:fixed;
+    inset:0;
+}
+
+#hud{
+    position:fixed;
+    left:12px;
+    right:12px;
+    top:12px;
+    display:flex;
+    justify-content:space-between;
+    z-index:10;
+    pointer-events:none;
+}
+
+.hudBox{
+    padding:10px 15px;
+    border-radius:14px;
+    background:rgba(10,12,20,.78);
+    color:white;
+    border:1px solid rgba(255,255,255,.16);
+    backdrop-filter:blur(8px);
+}
+
+#place{
+    font-size:22px;
+    font-weight:900;
+}
+
+#mapHud{
+    margin-top:3px;
+    font-size:12px;
+    color:#c9cede;
+}
+
+#time{
+    font-size:20px;
+    font-weight:bold;
+}
+
+#menu{
+    position:fixed;
+    inset:0;
+    z-index:50;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:
+        radial-gradient(circle at 50% 20%,#3b5b9b 0%,#171a2b 38%,#080a10 100%);
+    color:white;
+    overflow:auto;
+}
+
+.menu{
+    width:min(900px,94vw);
+    max-height:94vh;
+    overflow:auto;
+    padding:28px;
+    border-radius:25px;
+    background:rgba(16,19,31,.94);
+    border:1px solid rgba(255,255,255,.15);
+    box-shadow:0 30px 100px rgba(0,0,0,.55);
+    text-align:center;
+}
+
+.title{
+    font-size:clamp(42px,8vw,76px);
+    font-weight:1000;
+    letter-spacing:-4px;
+}
+
+.subtitle{
+    color:#b9bfd2;
+    margin:5px 0 22px;
+}
+
+h2{
+    margin-bottom:12px;
+}
+
+.mapGrid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+    gap:10px;
+}
+
+.map{
+    min-height:115px;
+    border-radius:17px;
+    padding:14px;
+    background:#252a3c;
+    border:2px solid transparent;
+    cursor:pointer;
+    transition:.15s;
+}
+
+.map:hover{
+    transform:translateY(-2px);
+}
+
+.map.selected{
+    border-color:white;
+    background:#3b4159;
+}
+
+.mapEmoji{
+    font-size:35px;
+}
+
+.mapName{
+    margin-top:5px;
+    font-weight:bold;
+}
+
+.mapDesc{
+    color:#adb3c5;
+    font-size:11px;
+    margin-top:5px;
+}
+
+button{
+    border:0;
+    border-radius:13px;
+    padding:13px 20px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.mainButton{
+    width:100%;
+    margin-top:12px;
+    background:#fff;
+    color:#111;
+}
+
+.darkButton{
+    background:#292d40;
+    color:white;
+}
+
+#online{
+    margin-top:18px;
+    padding:18px;
+    border-radius:17px;
+    background:#10131f;
+}
+
+input{
+    width:100%;
+    margin-top:10px;
+    padding:14px;
+    border-radius:11px;
+    border:1px solid #454b63;
+    background:#070910;
+    color:white;
+    font-size:20px;
+    text-align:center;
+    outline:none;
+    text-transform:uppercase;
+}
+
+#room{
+    margin-top:10px;
+    font-family:monospace;
+    font-size:25px;
+    letter-spacing:5px;
+}
+
+#status{
+    min-height:22px;
+    margin-top:9px;
+    color:#ffd56a;
+    font-size:14px;
+}
+
+.hidden{
+    display:none!important;
+}
+
+#countdown{
+    position:fixed;
+    inset:0;
+    z-index:40;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-size:clamp(80px,20vw,190px);
+    font-weight:1000;
+    pointer-events:none;
+    text-shadow:0 10px 40px rgba(0,0,0,.7);
+}
+
+#result{
+    position:fixed;
+    inset:0;
+    z-index:60;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.72);
+    color:white;
+}
+
+.resultBox{
+    width:min(480px,90vw);
+    padding:32px;
+    border-radius:24px;
+    background:#1a1e2d;
+    text-align:center;
+}
+
+.resultTitle{
+    font-size:43px;
+    font-weight:1000;
+}
+
+.resultText{
+    color:#bfc5d7;
+    margin:14px 0 24px;
+}
+
+#touch{
+    position:fixed;
+    inset:0;
+    z-index:20;
+    pointer-events:none;
+}
+
+#joystick{
+    position:absolute;
+    left:22px;
+    bottom:24px;
+    width:145px;
+    height:145px;
+    border-radius:50%;
+    background:rgba(255,255,255,.12);
+    border:2px solid rgba(255,255,255,.22);
+    pointer-events:auto;
+    touch-action:none;
+}
+
+#stick{
+    position:absolute;
+    width:60px;
+    height:60px;
+    left:40px;
+    top:40px;
+    border-radius:50%;
+    background:rgba(255,255,255,.58);
+}
+
+.touchButtons{
+    position:absolute;
+    right:20px;
+    bottom:22px;
+    display:flex;
+    gap:12px;
+}
+
+.touchBtn{
+    width:78px;
+    height:78px;
+    border-radius:50%;
+    padding:0;
+    color:white;
+    background:rgba(255,255,255,.16);
+    border:2px solid rgba(255,255,255,.22);
+    pointer-events:auto;
+    touch-action:none;
+}
+
+.touchBtn.big{
+    width:90px;
+    height:90px;
+}
+
+@media(pointer:fine){
+    #touch{
+        display:none;
+    }
+}
+
+@media(max-width:600px){
+    .menu{
+        padding:20px;
+    }
+
+    .mapGrid{
+        grid-template-columns:repeat(2,1fr);
+    }
+
+    .map{
+        min-height:105px;
+        padding:10px;
+    }
+
+    .mapEmoji{
+        font-size:28px;
+    }
+
+    #place{
+        font-size:18px;
+    }
+
+    #time{
+        font-size:16px;
+    }
+}
+</style>
+
+</head>
+
+<body>
+
+<div id="game"></div>
+
+<div id="hud">
+    <div class="hudBox">
+        <div id="place">1 / 8</div>
+        <div id="mapHud">Rainbow Rush</div>
+    </div>
+
+```
+<div class="hudBox">
+    <div id="time">00:00</div>
+</div>
+```
+
+</div>
+
+<div id="menu">
+    <div class="menu">
+
+```
+    <div class="title">CHAOS RACE</div>
+    <div class="subtitle">3D obstacle racing — Version 2</div>
+
+    <h2>Choose a map</h2>
+
+    <div id="mapGrid" class="mapGrid"></div>
+
+    <button id="botBtn" class="mainButton">
+        🤖 RACE WITH BOTS
+    </button>
+
+    <button id="createBtn" class="mainButton darkButton">
+        🌐 CREATE ONLINE RACE
+    </button>
+
+    <div id="online">
+
+        <b>Join a friend's race</b>
+
+        <input
+            id="codeInput"
+            maxlength="6"
+            placeholder="6-CHARACTER CODE">
+
+        <button id="joinBtn" class="mainButton">
+            🔑 JOIN RACE
+        </button>
+
+        <div id="room">------</div>
+
+        <div id="status"></div>
+
+    </div>
+
+</div>
+```
+
+</div>
+
+<div id="countdown" class="hidden">3</div>
+
+<div id="result" class="hidden">
+    <div class="resultBox">
+        <div id="resultTitle" class="resultTitle">
+            🏆 YOU FINISHED!
+        </div>
+
+```
+    <div id="resultText" class="resultText"></div>
+
+    <button id="againBtn">
+        🔄 PLAY AGAIN
+    </button>
+</div>
+```
+
+</div>
+
+<div id="touch">
+
+```
+<div id="joystick">
+    <div id="stick"></div>
+</div>
+
+<div class="touchButtons">
+
+    <button id="diveBtn" class="touchBtn">
+        DIVE
+    </button>
+
+    <button id="jumpBtn" class="touchBtn big">
+        JUMP
+    </button>
+
+</div>
+```
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script type="module">
+
+import * as THREE from
+"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
+
+/* =========================================================
+   CONFIG
+========================================================= */
+
+const PLAYER_COUNT = 8;
+
+const COURSE_START_Z = 12;
+
+const COURSE_END_Z = -170;
+
+const PLAYER_SPEED = 9;
+
+const GRAVITY = -28;
+
+const JUMP_POWER = 11;
+
+/* =========================================================
+   THREE.JS
+========================================================= */
+
+const scene =
+    new THREE.Scene();
+
+const camera =
+    new THREE.PerspectiveCamera(
+        62,
+        innerWidth / innerHeight,
+        .1,
+        500
+    );
+
+const renderer =
+    new THREE.WebGLRenderer({
+        antialias:true
+    });
+
+renderer.setPixelRatio(
+    Math.min(devicePixelRatio,2)
+);
+
+renderer.setSize(
+    innerWidth,
+    innerHeight
+);
+
+renderer.shadowMap.enabled = true;
+
+renderer.shadowMap.type =
+    THREE.PCFSoftShadowMap;
+
+document
+    .getElementById("game")
+    .appendChild(renderer.domElement);
+
+/* =========================================================
+   LIGHTS
+========================================================= */
+
+scene.add(
+    new THREE.HemisphereLight(
+        0xffffff,
+        0x446644,
+        2
+    )
+);
+
+const sun =
+    new THREE.DirectionalLight(
+        0xffffff,
+        2.2
+    );
+
+sun.position.set(
+    30,
+    50,
+    20
+);
+
+sun.castShadow = true;
+
+sun.shadow.mapSize.width = 2048;
+sun.shadow.mapSize.height = 2048;
+
+scene.add(sun);
+
+/* =========================================================
+   MAP DATA
+========================================================= */
+
+const MAPS = [
+
+    {
+        id:"rainbow",
+        name:"Rainbow Rush",
+        emoji:"🌈",
+        desc:"Rotating beams and platforms",
+        sky:0x78cfff,
+        floor:0x55c987
+    },
+
+    {
+        id:"factory",
+        name:"Factory Frenzy",
+        emoji:"🏭",
+        desc:"Hammers and moving blocks",
+        sky:0x555866,
+        floor:0x3e414b
+    },
+
+    {
+        id:"lava",
+        name:"Lava Leap",
+        emoji:"🌋",
+        desc:"Jump across volcanic platforms",
+        sky:0xff9271,
+        floor:0x4e2424
+    },
+
+    {
+        id:"ice",
+        name:"Ice Mountain",
+        emoji:"❄️",
+        desc:"Slippery ice and spinners",
+        sky:0xb9eaff,
+        floor:0xdffaff
+    },
+
+    {
+        id:"space",
+        name:"Space Station",
+        emoji:"🚀",
+        desc:"Floating cosmic obstacles",
+        sky:0x09091d,
+        floor:0x29294d
+    },
+
+    {
+        id:"jungle",
+        name:"Jungle Jumble",
+        emoji:"🌴",
+        desc:"Rolling logs and bridges",
+        sky:0x6cc78b,
+        floor:0x398451
+    },
+
+    {
+        id:"neon",
+        name:"Neon Circuit",
+        emoji:"⚡",
+        desc:"Fast futuristic obstacles",
+        sky:0x17172f,
+        floor:0x24245e
+    },
+
+    {
+        id:"castle",
+        name:"Castle Chaos",
+        emoji:"🏰",
+        desc:"Gates and spinning bridges",
+        sky:0x8e9bc4,
+        floor:0x77745f
+    }
+
+];
+
+let selectedMap =
+    MAPS[0];
+
+/* =========================================================
+   GAME STATE
+========================================================= */
+
+let gameStarted = false;
+
+let finished = false;
+
+let online = false;
+
+let socket = null;
+
+let roomCode = null;
+
+let raceStart = 0;
+
+let finishPosition = 1;
+
+let networkTimer = 0;
+
+let countdownRunning = false;
+
+/* =========================================================
+   INPUT
+========================================================= */
+
+const keys = {};
+
+let joystickX = 0;
+
+let joystickY = 0;
+
+let joystickPointer = null;
+
+window.addEventListener(
+    "keydown",
+    e => {
+
+        keys[e.key.toLowerCase()] =
+            true;
+
+        if (
+            e.key === " " ||
+            e.key === "ArrowUp"
+        ) {
+            jump();
+        }
+
+        if (
+            e.key.toLowerCase() === "q"
+        ) {
+            dive();
+        }
+
+    }
+);
+
+window.addEventListener(
+    "keyup",
+    e => {
+
+        keys[e.key.toLowerCase()] =
+            false;
+
+    }
+);
+
+/* =========================================================
+   JOYSTICK
+========================================================= */
+
+const joystick =
+    document.getElementById(
+        "joystick"
+    );
+
+const stick =
+    document.getElementById(
+        "stick"
+    );
+
+joystick.addEventListener(
+    "pointerdown",
+    e => {
+
+        joystickPointer =
+            e.pointerId;
+
+        joystick.setPointerCapture(
+            e.pointerId
+        );
+
+        updateJoystick(e);
+
+    }
+);
+
+joystick.addEventListener(
+    "pointermove",
+    e => {
+
+        if (
+            e.pointerId ===
+            joystickPointer
+        ) {
+            updateJoystick(e);
+        }
+
+    }
+);
+
+function updateJoystick(e){
+
+    const rect =
+        joystick.getBoundingClientRect();
+
+    const cx =
+        rect.left +
+        rect.width / 2;
+
+    const cy =
+        rect.top +
+        rect.height / 2;
+
+    let dx =
+        e.clientX - cx;
+
+    let dy =
+        e.clientY - cy;
+
+    const max =
+        rect.width / 2 - 32;
+
+    const distance =
+        Math.hypot(
+            dx,
+            dy
+        );
+
+    if (
+        distance > max
+    ) {
+
+        dx =
+            dx / distance * max;
+
+        dy =
+            dy / distance * max;
+
+    }
+
+    joystickX =
+        dx / max;
+
+    joystickY =
+        dy / max;
+
+    stick.style.transform =
+        `translate(${dx}px,${dy}px)`;
+
+}
+
+function resetJoystick(){
+
+    joystickPointer =
+        null;
+
+    joystickX = 0;
+
+    joystickY = 0;
+
+    stick.style.transform =
+        "translate(0,0)";
+
+}
+
+joystick.addEventListener(
+    "pointerup",
+    resetJoystick
+);
+
+joystick.addEventListener(
+    "pointercancel",
+    resetJoystick
+);
+
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+document
+    .getElementById("jumpBtn")
+    .addEventListener(
+        "pointerdown",
+        e => {
+            e.preventDefault();
+            jump();
+        }
+    );
+
+document
+    .getElementById("diveBtn")
+    .addEventListener(
+        "pointerdown",
+        e => {
+            e.preventDefault();
+            dive();
+        }
+    );
+
+/* =========================================================
+   PLAYER
+========================================================= */
+
+const player =
+    new THREE.Group();
+
+scene.add(player);
+
+const playerBody =
+    new THREE.Mesh(
+        new THREE.CapsuleGeometry(
+            .46,
+            .78,
+            8,
+            14
+        ),
+        new THREE.MeshStandardMaterial({
+            color:0xff416c,
+            roughness:.7
+        })
+    );
+
+playerBody.position.y =
+    1;
+
+playerBody.castShadow = true;
+
+player.add(
+    playerBody
+);
+
+const playerHead =
+    new THREE.Mesh(
+        new THREE.SphereGeometry(
+            .34,
+            18,
+            18
+        ),
+        new THREE.MeshStandardMaterial({
+            color:0xffd0ad
+        })
+    );
+
+playerHead.position.y =
+    1.7;
+
+playerHead.castShadow = true;
+
+player.add(
+    playerHead
+);
+
+/* =========================================================
+   PHYSICS
+========================================================= */
+
+const velocity =
+    new THREE.Vector3();
+
+let grounded = true;
+
+let diving = false;
+
+function jump(){
+
+    if (
+        !gameStarted ||
+        !grounded
+    ) return;
+
+    velocity.y =
+        JUMP_POWER;
+
+    grounded = false;
+
+}
+
+function dive(){
+
+    if (!gameStarted)
+        return;
+
+    diving = true;
+
+    velocity.z -= 5;
+
+    setTimeout(
+        () => {
+            diving = false;
+        },
+        450
+    );
+
+}
+
+/* =========================================================
+   COURSE
+========================================================= */
+
+let courseObjects = [];
+
+function clearCourse(){
+
+    for (
+        const obj of courseObjects
+    ) {
+
+        scene.remove(obj);
+
+    }
+
+    courseObjects = [];
+
+}
+
+function mat(color){
+
+    return new THREE.MeshStandardMaterial({
+        color,
+        roughness:.72
+    });
+
+}
+
+function createBox(
+    x,y,z,
+    sx,sy,sz,
+    color,
+    data={}
+){
+
+    const mesh =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                sx,sy,sz
+            ),
+            mat(color)
+        );
+
+    mesh.position.set(
+        x,y,z
+    );
+
+    mesh.castShadow = true;
+
+    mesh.receiveShadow = true;
+
+    Object.assign(
+        mesh.userData,
+        data
+    );
+
+    scene.add(mesh);
+
+    courseObjects.push(mesh);
+
+    return mesh;
+
+}
+
+/* =========================================================
+   BASE COURSE
+========================================================= */
+
+function createBase(){
+
+    createBox(
+        0,
+        -1,
+        -75,
+        30,
+        2,
+        190,
+        selectedMap.floor
+    );
+
+    createBox(
+        0,
+        -1,
+        15,
+        30,
+        2,
+        25,
+        0x4b8fff
+    );
+
+}
+
+/* =========================================================
+   SPINNER
+========================================================= */
+
+function spinner(
+    z,
+    color=0xff3b73
+){
+
+    const group =
+        new THREE.Group();
+
+    group.position.set(
+        0,
+        1,
+        z
+    );
+
+    const beam =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                23,
+                .75,
+                1.25
+            ),
+            mat(color)
+        );
+
+    beam.castShadow = true;
+
+    group.add(
+        beam
+    );
+
+    const center =
+        new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                1.2,
+                1.2,
+                1.5,
+                20
+            ),
+            mat(0xffd52f)
+        );
+
+    center.rotation.x =
+        Math.PI / 2;
+
+    group.add(
+        center
+    );
+
+    group.userData.type =
+        "spinner";
+
+    group.userData.speed =
+        1.7;
+
+    scene.add(group);
+
+    courseObjects.push(group);
+
+}
+
+/* =========================================================
+   MOVING BLOCK
+========================================================= */
+
+function movingBlock(z){
+
+    const block =
+        createBox(
+            0,
+            2,
+            z,
+            5,
+            4,
+            5,
+            0xffa22f,
+            {
+                type:"moving",
+                phase:Math.random()*10
+            }
+        );
+
+    return block;
+
+}
+
+/* =========================================================
+   HAMMER
+========================================================= */
+
+function hammer(z){
+
+    const group =
+        new THREE.Group();
+
+    group.position.set(
+        0,
+        6,
+        z
+    );
+
+    const pole =
+        new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                .45,
+                .45,
+                12,
+                12
+            ),
+            mat(0x777777)
+        );
+
+    group.add(
+        pole
+    );
+
+    const head =
+        new THREE.Mesh(
+            new THREE.BoxGeometry(
+                10,
+                2,
+                2
+            ),
+            mat(0xff4a3c)
+        );
+
+    head.position.y =
+        -4;
+
+    head.castShadow = true;
+
+    group.add(
+        head
+    );
+
+    group.userData.type =
+        "hammer";
+
+    group.userData.phase =
+        Math.random()*6;
+
+    scene.add(group);
+
+    courseObjects.push(group);
+
+}
+
+/* =========================================================
+   ROLLING LOG
+========================================================= */
+
+function log(z){
+
+    const mesh =
+        new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                1.7,
+                1.7,
+                16,
+                18
+            ),
+            mat(0x75462c)
+        );
+
+    mesh.rotation.z =
+        Math.PI/2;
+
+    mesh.position.set(
+        0,
+        2,
+        z
+    );
+
+    mesh.castShadow = true;
+
+    mesh.userData.type =
+        "log";
+
+    mesh.userData.phase =
+        Math.random()*6;
+
+    scene.add(mesh);
+
+    courseObjects.push(mesh);
+
+}
+
+/* =========================================================
+   COURSE TYPES
+========================================================= */
+
+function buildRainbow(){
+
+    for(
+        let z=-15;
+        z>-150;
+        z-=25
+    ){
+
+        spinner(
+            z,
+            0xff4c83
+        );
+
+    }
+
+    for(
+        let z=-30;
+        z>-150;
+        z-=30
+    ){
+
+        movingBlock(z);
+
+    }
+
+}
+
+function buildFactory(){
+
+    for(
+        let z=-15;
+        z>-155;
+        z-=24
+    ){
+
+        hammer(z);
+
+    }
+
+    for(
+        let z=-30;
+        z>-150;
+        z-=30
+    ){
+
+        movingBlock(z);
+
+    }
+
+}
+
+function buildLava(){
+
+    createBox(
+        0,
+        -2,
+        -70,
+        30,
+        1,
+        180,
+        0xd63a21
+    );
+
+    for(
+        let z=-15;
+        z>-155;
+        z-=13
+    ){
+
+        const x =
+            (Math.random()*16)-8;
+
+        createBox(
+            x,
+            0,
+            z,
+            7,
+            2,
+            6,
+            0x666666
+        );
+
+    }
+
+}
+
+function buildIce(){
+
+    for(
+        let z=-20;
+        z>-155;
+        z-=25
+    ){
+
+        spinner(
+            z,
+            0x47b9ff
+        );
+
+    }
+
+    for(
+        let z=-35;
+        z>-150;
+        z-=25
+    ){
+
+        const platform =
+            createBox(
+                Math.sin(z)*7,
+                1,
+                z,
+                7,
+                2,
+                7,
+                0x8fe7ff,
+                {
+                    type:"ice"
+                }
+            );
+
+    }
+
+}
+
+function buildSpace(){
+
+    for(
+        let z=-20;
+        z>-155;
+        z-=22
+    ){
+
+        createBox(
+            (Math.random()-.5)*10,
+            1+Math.random()*2,
+            z,
+            7,
+            2,
+            7,
+            0x716cff,
+            {
+                type:"floating"
+            }
+        );
+
+    }
+
+}
+
+function buildJungle(){
+
+    for(
+        let z=-15;
+        z>-155;
+        z-=23
+    ){
+
+        log(z);
+
+    }
+
+    for(
+        let z=-25;
+        z>-150;
+        z-=35
+    ){
+
+        spinner(
+            z,
+            0x34a85b
+        );
+
+    }
+
+}
+
+function buildNeon(){
+
+    for(
+        let z=-20;
+        z>-155;
+        z-=20
+    ){
+
+        spinner(
+            z,
+            0x55ffff
+        );
+
+    }
+
+    for(
+        let z=-30;
+        z>-150;
+        z-=30
+    ){
+
+        movingBlock(z);
+
+    }
+
+}
+
+function buildCastle(){
+
+    for(
+        let z=-20;
+        z>-150;
+        z-=28
+    ){
+
+        hammer(z);
+
+    }
+
+    for(
+        let z=-35;
+        z>-150;
+        z-=35
+    ){
+
+        spinner(
+            z,
+            0xffcc55
+        );
+
+    }
+
+}
+
+/* =========================================================
+   FINISH
+========================================================= */
+
+function createFinish(){
+
+    createBox(
+        0,
+        -1,
+        COURSE_END_Z,
+        30,
+        2,
+        12,
+        0x35dc8c
+    );
+
+    createBox(
+        -12,
+        5,
+        COURSE_END_Z,
+        1,
+        10,
+        1,
+        0xffffff
+    );
+
+    createBox(
+        12,
+        5,
+        COURSE_END_Z,
+        1,
+        10,
+        1,
+        0xffffff
+    );
+
+    createBox(
+        0,
+        9,
+        COURSE_END_Z,
+        25,
+        1,
+        1,
+        0xffffff
+    );
+
+}
+
+/* =========================================================
+   BUILD COURSE
+========================================================= */
+
+function buildCourse(){
+
+    clearCourse();
+
+    scene.background =
+        new THREE.Color(
+            selectedMap.sky
+        );
+
+    scene.fog =
+        new THREE.Fog(
+            selectedMap.sky,
+            40,
+            190
+        );
+
+    createBase();
+
+    if(
+        selectedMap.id==="rainbow"
+    )
+        buildRainbow();
+
+    if(
+        selectedMap.id==="factory"
+    )
+        buildFactory();
+
+    if(
+        selectedMap.id==="lava"
+    )
+        buildLava();
+
+    if(
+        selectedMap.id==="ice"
+    )
+        buildIce();
+
+    if(
+        selectedMap.id==="space"
+    )
+        buildSpace();
+
+    if(
+        selectedMap.id==="jungle"
+    )
+        buildJungle();
+
+    if(
+        selectedMap.id==="neon"
+    )
+        buildNeon();
+
+    if(
+        selectedMap.id==="castle"
+    )
+        buildCastle();
+
+    createFinish();
+
+    document
+        .getElementById("mapHud")
+        .textContent =
+        selectedMap.name;
+
+}
+
+/* =========================================================
+   BOTS
+========================================================= */
+
+const bots = [];
+
+function clearBots(){
+
+    for(
+        const bot of bots
+    ){
+
+        scene.remove(
+            bot.mesh
+        );
+
+    }
+
+    bots.length=0;
+
+}
+
+function createBot(index){
+
+    const group =
+        new THREE.Group();
+
+    const color =
+        new THREE.Color()
+            .setHSL(
+                index/PLAYER_COUNT,
+                .75,
+                .55
+            );
+
+    const body =
+        new THREE.Mesh(
+            new THREE.CapsuleGeometry(
+                .44,
+                .76,
+                8,
+                12
+            ),
+            new THREE.MeshStandardMaterial({
+                color
+            })
+        );
+
+    body.position.y=1;
+
+    group.add(body);
+
+    const head =
+        new THREE.Mesh(
+            new THREE.SphereGeometry(
+                .33,
+                16,
+                16
+            ),
+            new THREE.MeshStandardMaterial({
+                color:0xffd0ad
+            })
+        );
+
+    head.position.y=1.68;
+
+    group.add(head);
+
+    group.position.set(
+        ((index%4)-1.5)*5,
+        0,
+        COURSE_START_Z+
+        Math.floor(index/4)*5
+    );
+
+    scene.add(group);
+
+    bots.push({
+
+        mesh:group,
+
+        speed:
+            6.8+
+            Math.random()*3,
+
+        lane:
+            group.position.x,
+
+        jumpTimer:
+            1+
+            Math.random()*3,
+
+        finished:false
+
+    });
+
+}
+
+function createBots(){
+
+    clearBots();
+
+    for(
+        let i=0;
+        i<PLAYER_COUNT-1;
+        i++
+    ){
+
+        createBot(i);
+
+    }
+
+}
+
+/* =========================================================
+   UPDATE BOTS
+========================================================= */
+
+function updateBots(dt){
+
+    if(!gameStarted)
+        return;
+
+    for(
+        const bot of bots
+    ){
+
+        if(
+            bot.finished
+        )
+            continue;
+
+        bot.mesh.position.z -=
+            bot.speed*dt;
+
+        bot.jumpTimer -= dt;
+
+        if(
+            bot.jumpTimer<=0 &&
+            bot.mesh.position.y<=0.01
+        ){
+
+            bot.mesh.position.y=2;
+
+            bot.jumpTimer=
+                1.5+
+                Math.random()*2;
+
+        }
+
+        if(
+            bot.mesh.position.y>0
+        ){
+
+            bot.mesh.position.y -=
+                dt*5;
+
+            if(
+                bot.mesh.position.y<0
+            )
+                bot.mesh.position.y=0;
+
+        }
+
+        bot.mesh.position.x =
+            THREE.MathUtils.lerp(
+                bot.mesh.position.x,
+                bot.lane,
+                .04
+            );
+
+        if(
+            bot.mesh.position.z<=
+            COURSE_END_Z
+        ){
+
+            bot.finished=true;
+
+        }
+
+    }
+
+}
+
+/* =========================================================
+   PLAYER UPDATE
+========================================================= */
+
+function updatePlayer(dt){
+
+    if(!gameStarted)
+        return;
+
+    let x=0;
+
+    let z=0;
+
+    if(
+        keys["a"] ||
+        keys["arrowleft"]
+    )
+        x-=1;
+
+    if(
+        keys["d"] ||
+        keys["arrowright"]
+    )
+        x+=1;
+
+    if(
+        keys["w"] ||
+        keys["arrowup"]
+    )
+        z-=1;
+
+    if(
+        keys["s"] ||
+        keys["arrowdown"]
+    )
+        z+=1;
+
+    x+=joystickX;
+
+    z+=joystickY;
+
+    const length =
+        Math.hypot(
+            x,
+            z
+        );
+
+    if(
+        length>1
+    ){
+
+        x/=length;
+        z/=length;
+
+    }
+
+    velocity.x =
+        THREE.MathUtils.lerp(
+            velocity.x,
+            x*PLAYER_SPEED,
+            .16
+        );
+
+    velocity.z =
+        THREE.MathUtils.lerp(
+            velocity.z,
+            z*PLAYER_SPEED,
+            .16
+        );
+
+    velocity.y +=
+        GRAVITY*dt;
+
+    player.position.x +=
+        velocity.x*dt;
+
+    player.position.z +=
+        velocity.z*dt;
+
+    player.position.y +=
+        velocity.y*dt;
+
+    if(
+        player.position.y<=0
+    ){
+
+        player.position.y=0;
+
+        velocity.y=0;
+
+        grounded=true;
+
+    }
+
+    player.position.x =
+        THREE.MathUtils.clamp(
+            player.position.x,
+            -13,
+            13
+        );
+
+    if(
+        player.position.y < -10
+    ){
+
+        respawn();
+
+    }
+
+    if(
+        player.position.z<=
+        COURSE_END_Z
+    ){
+
+        finish();
+
+    }
+
+}
+
+/* =========================================================
+   RESPawn
+========================================================= */
+
+function respawn(){
+
+    player.position.set(
+        0,
+        1,
+        COURSE_START_Z
+    );
+
+    velocity.set(
+        0,
+        0,
+        0
+    );
+
+    grounded=false;
+
+}
+
+/* =========================================================
+   OBSTACLES
+========================================================= */
+
+function updateObstacles(time){
+
+    for(
+        const obj of courseObjects
+    ){
+
+        const type =
+            obj.userData.type;
+
+        if(
+            type==="spinner"
+        ){
+
+            obj.rotation.y =
+                time*
+                obj.userData.speed;
+
+        }
+
+        if(
+            type==="hammer"
+        ){
+
+            obj.rotation.z =
+                Math.sin(
+                    time*2+
+                    obj.userData.phase
+                )*.95;
+
+        }
+
+        if(
+            type==="moving"
+        ){
+
+            obj.position.x =
+                Math.sin(
+                    time*1.4+
+                    obj.userData.phase
+                )*8;
+
+        }
+
+        if(
+            type==="log"
+        ){
+
+            obj.rotation.x =
+                time*2+
+                obj.userData.phase;
+
+        }
+
+        if(
+            type==="floating"
+        ){
+
+            obj.position.y =
+                1.5+
+                Math.sin(
+                    time*1.7+
+                    obj.position.z
+                )*.8;
+
+        }
+
+    }
+
+}
+
+/* =========================================================
+   SIMPLE COLLISION
+========================================================= */
+
+function checkCollisions(){
+
+    if(!gameStarted)
+        return;
+
+    const playerBox =
+        new THREE.Box3()
+            .setFromObject(
+                player
+            );
+
+    for(
+        const obj of courseObjects
+    ){
+
+        const type =
+            obj.userData.type;
+
+        if(
+            type!=="spinner" &&
+            type!=="hammer" &&
+            type!=="moving" &&
+            type!=="log"
+        )
+            continue;
+
+        const box =
+            new THREE.Box3()
+                .setFromObject(
+                    obj
+                );
+
+        box.expandByScalar(-.35);
+
+        if(
+            playerBox.intersectsBox(box)
+        ){
+
+            const dx =
+                player.position.x -
+                obj.position.x;
+
+            const dz =
+                player.position.z -
+                obj.position.z;
+
+            const len =
+                Math.hypot(dx,dz) ||
+                1;
+
+            player.position.x +=
+                dx/len*1.2;
+
+            player.position.z +=
+                dz/len*1.2;
+
+            velocity.x +=
+                dx/len*7;
+
+            velocity.z +=
+                dz/len*7;
+
+        }
+
+    }
+
+}
+
+/* =========================================================
+   POSITION
+========================================================= */
+
+function updatePlace(){
+
+    let place=1;
+
+    for(
+        const bot of bots
+    ){
+
+        if(
+            bot.mesh.position.z >
+            player.position.z
+        ){
+
+            place++;
+
+        }
+
+    }
+
+    finishPosition=place;
+
+    document
+        .getElementById("place")
+        .textContent =
+        `${place} / ${PLAYER_COUNT}`;
+
+}
+
+/* =========================================================
+   FINISH
+========================================================= */
+
+function finish(){
+
+    if(finished)
+        return;
+
+    finished=true;
+
+    gameStarted=false;
+
+    const elapsed =
+        (
+            performance.now()-
+            raceStart
+        )/1000;
+
+    document
+        .getElementById("resultTitle")
+        .textContent =
+        finishPosition===1
+        ? "🏆 YOU WON!"
+        : "🏁 FINISHED!";
+
+    document
+        .getElementById("resultText")
+        .textContent =
+        `You finished ${finishPosition}${ordinal(finishPosition)} in ${elapsed.toFixed(2)} seconds.`;
+
+    document
+        .getElementById("result")
+        .classList.remove(
+            "hidden"
+        );
+
+    if(
+        online &&
+        socket
+    ){
+
+        socket.emit(
+            "finished",
+            {
+                position:
+                    finishPosition
+            }
+        );
+
+    }
+
+}
+
+function ordinal(n){
+
+    if(
+        n%100>=11 &&
+        n%100<=13
+    )
+        return "th";
+
+    if(n%10===1)
+        return "st";
+
+    if(n%10===2)
+        return "nd";
+
+    if(n%10===3)
+        return "rd";
+
+    return "th";
+
+}
+
+/* =========================================================
+   TIMER
+========================================================= */
+
+function updateTimer(){
+
+    if(!gameStarted)
+        return;
+
+    const seconds =
+        (
+            performance.now()-
+            raceStart
+        )/1000;
+
+    const m =
+        Math.floor(
+            seconds/60
+        );
+
+    const s =
+        Math.floor(
+            seconds%60
+        );
+
+    document
+        .getElementById("time")
+        .textContent =
+        `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+
+}
+
+/* =========================================================
+   CAMERA
+========================================================= */
+
+function updateCamera(){
+
+    const target =
+        new THREE.Vector3(
+            player.position.x,
+            player.position.y+4,
+            player.position.z+8
+        );
+
+    camera.position.lerp(
+        target,
+        .085
+    );
+
+    camera.lookAt(
+        player.position.x,
+        player.position.y+1,
+        player.position.z-7
+    );
+
+}
+
+/* =========================================================
+   COUNTDOWN
+========================================================= */
+
+function countdown(callback){
+
+    if(countdownRunning)
+        return;
+
+    countdownRunning=true;
+
+    const element =
+        document.getElementById(
+            "countdown"
+        );
+
+    element.classList.remove(
+        "hidden"
+    );
+
+    let number=3;
+
+    element.textContent=
+        number;
+
+    const interval =
+        setInterval(
+            () => {
+
+                number--;
+
+                if(
+                    number>0
+                ){
+
+                    element.textContent=
+                        number;
+
+                }else{
+
+                    element.textContent=
+                        "GO!";
+
+                    clearInterval(
+                        interval
+                    );
+
+                    setTimeout(
+                        () => {
+
+                            element.classList.add(
+                                "hidden"
+                            );
+
+                            countdownRunning=
+                                false;
+
+                            callback();
+
+                        },
+                        500
+                    );
+
+                }
+
+            },
+            800
+        );
+
+}
+
+/* =========================================================
+   START GAME
+========================================================= */
+
+function startGame(){
+
+    finished=false;
+
+    gameStarted=false;
+
+    player.position.set(
+        0,
+        0,
+        COURSE_START_Z
+    );
+
+    velocity.set(
+        0,
+        0,
+        0
+    );
+
+    buildCourse();
+
+    createBots();
+
+    document
+        .getElementById("menu")
+        .classList.add(
+            "hidden"
+        );
+
+    countdown(
+        () => {
+
+            gameStarted=true;
+
+            raceStart=
+                performance.now();
+
+        }
+    );
+
+}
+
+/* =========================================================
+   BOT MODE
+========================================================= */
+
+document
+    .getElementById("botBtn")
+    .addEventListener(
+        "click",
+        () => {
+
+            online=false;
+
+            roomCode=null;
+
+            startGame();
+
+        }
+    );
+
+/* =========================================================
+   SOCKET
+========================================================= */
+
+function connectSocket(){
+
+    if(socket)
+        return;
+
+    socket =
+        io();
+
+    socket.on(
+        "connect",
+        () => {
+
+            setStatus(
+                "Connected."
+            );
+
+        }
+    );
+
+    socket.on(
+        "roomCreated",
+        data => {
+
+            roomCode=data.code;
+
+            document
+                .getElementById("room")
+                .textContent=
+                data.code;
+
+            setStatus(
+                "Waiting for your friend..."
+            );
+
+        }
+    );
+
+    socket.on(
+        "raceStarting",
+        data => {
+
+            if(data.map){
+
+                const found =
+                    MAPS.find(
+                        m =>
+                        m.id===data.map
+                    );
+
+                if(found)
+                    selectedMap=found;
+
+            }
+
+            startGame();
+
+        }
+    );
+
+    socket.on(
+        "playerUpdate",
+        data => {
+
+            if(
+                !data ||
+                !data.id ||
+                !data.position
+            )
+                return;
+
+            updateRemote(
+                data
+            );
+
+        }
+    );
+
+    socket.on(
+        "playerFinished",
+        data => {
+
+            if(
+                gameStarted &&
+                data
+            ){
+
+                /* Remote player finished.
+                   We don't alter our local
+                   result here. */
+
+            }
+
+        }
+    );
+
+    socket.on(
+        "opponentLeft",
+        () => {
+
+            setStatus(
+                "Your opponent left the race."
+            );
+
+        }
+    );
+
+    socket.on(
+        "serverError",
+        message => {
+
+            setStatus(
+                message
+            );
+
+        }
+    );
+
+}
+
+/* =========================================================
+   CREATE ROOM
+========================================================= */
+
+document
+    .getElementById("createBtn")
+    .addEventListener(
+        "click",
+        () => {
+
+            online=true;
+
+            connectSocket();
+
+            const send =
+                () => {
+
+                    socket.emit(
+                        "createRoom",
+                        {
+                            map:
+                                selectedMap.id
+                        },
+                        response => {
+
+                            if(
+                                !response ||
+                                !response.success
+                            ){
+
+                                setStatus(
+                                    response?.error ||
+                                    "Could not create room."
+                                );
+
+                                return;
+
+                            }
+
+                            roomCode=
+                                response.code;
+
+                            document
+                                .getElementById(
+                                    "room"
+                                )
+                                .textContent=
+                                response.code;
+
+                            setStatus(
+                                "Share the code with your friend."
+                            );
+
+                        }
+                    );
+
+                };
+
+            if(socket.connected)
+                send();
+            else
+                socket.once(
+                    "connect",
+                    send
+                );
+
+        }
+    );
+
+/* =========================================================
+   JOIN ROOM
+========================================================= */
+
+document
+    .getElementById("joinBtn")
+    .addEventListener(
+        "click",
+        () => {
+
+            const code =
+                document
+                    .getElementById(
+                        "codeInput"
+                    )
+                    .value
+                    .trim()
+                    .toUpperCase();
+
+            if(
+                code.length!==6
+            ){
+
+                setStatus(
+                    "Enter a 6-character code."
+                );
+
+                return;
+
+            }
+
+            online=true;
+
+            connectSocket();
+
+            const send =
+                () => {
+
+                    socket.emit(
+                        "joinRoom",
+                        {
+                            code
+                        },
+                        response => {
+
+                            if(
+                                !response ||
+                                !response.success
+                            ){
+
+                                setStatus(
+                                    response?.error ||
+                                    "Could not join room."
+                                );
+
+                                return;
+
+                            }
+
+                            roomCode=
+                                response.code;
+
+                            document
+                                .getElementById(
+                                    "room"
+                                )
+                                .textContent=
+                                response.code;
+
+                            setStatus(
+                                "Joined! Waiting for race..."
+                            );
+
+                        }
+                    );
+
+                };
+
+            if(socket.connected)
+                send();
+            else
+                socket.once(
+                    "connect",
+                    send
+                );
+
+        }
+    );
+
+/* =========================================================
+   REMOTE PLAYERS
+========================================================= */
+
+const remotePlayers={};
+
+function updateRemote(data){
+
+    let remote =
+        remotePlayers[
+            data.id
+        ];
+
+    if(!remote){
+
+        remote =
+            new THREE.Group();
+
+        const body =
+            new THREE.Mesh(
+                new THREE.CapsuleGeometry(
+                    .44,
+                    .76,
+                    8,
+                    12
+                ),
+                new THREE.MeshStandardMaterial({
+                    color:0x36a9ff
+                })
+            );
+
+        body.position.y=1;
+
+        remote.add(body);
+
+        const head =
+            new THREE.Mesh(
+                new THREE.SphereGeometry(
+                    .33,
+                    16,
+                    16
+                ),
+                new THREE.MeshStandardMaterial({
+                    color:0xffd0ad
+                })
+            );
+
+        head.position.y=1.68;
+
+        remote.add(head);
+
+        scene.add(remote);
+
+        remotePlayers[
+            data.id
+        ]=remote;
+
+    }
+
+    const target =
+        new THREE.Vector3(
+            data.position.x,
+            data.position.y,
+            data.position.z
+        );
+
+    remote.position.lerp(
+        target,
+        .35
+    );
+
+}
+
+/* =========================================================
+   NETWORK UPDATE
+========================================================= */
+
+function sendNetwork(){
+
+    if(
+        !online ||
+        !socket ||
+        !socket.connected ||
+        !roomCode ||
+        !gameStarted
+    )
+        return;
+
+    const now=
+        performance.now();
+
+    if(
+        now-networkTimer<50
+    )
+        return;
+
+    networkTimer=now;
+
+    socket.emit(
+        "playerMove",
+        {
+            position:{
+                x:player.position.x,
+                y:player.position.y,
+                z:player.position.z
+            }
+        }
+    );
+
+}
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+function setStatus(text){
+
+    document
+        .getElementById("status")
+        .textContent=
+        text;
+
+}
+
+/* =========================================================
+   PLAY AGAIN
+========================================================= */
+
+document
+    .getElementById("againBtn")
+    .addEventListener(
+        "click",
+        () => {
+
+            document
+                .getElementById(
+                    "result"
+                )
+                .classList.add(
+                    "hidden"
+                );
+
+            if(online){
+
+                countdown(
+                    () => {
+
+                        finished=false;
+
+                        player.position.set(
+                            0,
+                            0,
+                            COURSE_START_Z
+                        );
+
+                        velocity.set(
+                            0,
+                            0,
+                            0
+                        );
+
+                        gameStarted=true;
+
+                        raceStart=
+                            performance.now();
+
+                    }
+                );
+
+            }else{
+
+                startGame();
+
+            }
+
+        }
+    );
+
+/* =========================================================
+   ANIMATION
+========================================================= */
+
+let previous=
+    performance.now();
+
+function animate(){
+
+    requestAnimationFrame(
+        animate
+    );
+
+    const now=
+        performance.now();
+
+    const dt=
+        Math.min(
+            (now-previous)/1000,
+            .04
+        );
+
+    previous=now;
+
+    const time=
+        now/1000;
+
+    updatePlayer(dt);
+
+    updateBots(dt);
+
+    updateObstacles(time);
+
+    checkCollisions();
+
+    updatePlace();
+
+    updateTimer();
+
+    sendNetwork();
+
+    updateCamera();
+
+    renderer.render(
+        scene,
+        camera
+    );
+
+}
+
+animate();
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+window.addEventListener(
+    "resize",
+    () => {
+
+        camera.aspect=
+            innerWidth/
+            innerHeight;
+
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(
+            innerWidth,
+            innerHeight
+        );
+
+    }
+);
+
+/* =========================================================
+   INITIAL
+========================================================= */
+
+camera.position.set(
+    0,
+    7,
+    24
+);
+
+camera.lookAt(
+    0,
+    1,
+    0
+);
+
+/* =========================================================
+   MAP MENU
+========================================================= */
+
+const mapGrid =
+    document.getElementById(
+        "mapGrid"
+    );
+
+MAPS.forEach(
+    (map,index) => {
+
+        const card =
+            document.createElement(
+                "div"
+            );
+
+        card.className=
+            "map"+
+            (
+                index===0
+                ?" selected"
+                :""
+            );
+
+        card.innerHTML=`
+
+            <div class="mapEmoji">
+                ${map.emoji}
+            </div>
+
+            <div class="mapName">
+                ${map.name}
+            </div>
+
+            <div class="mapDesc">
+                ${map.desc}
+            </div>
+
+        `;
+
+        card.addEventListener(
+            "click",
+            () => {
+
+                selectedMap=
+                    map;
+
+                document
+                    .querySelectorAll(
+                        ".map"
+                    )
+                    .forEach(
+                        element =>
+                        element.classList.remove(
+                            "selected"
+                        )
+                    );
+
+                card.classList.add(
+                    "selected"
+                );
+
+            }
+        );
+
+        mapGrid.appendChild(
+            card
+        );
+
+    }
+);
+
+</script>
+
+</body>
+</html>
